@@ -1,4 +1,7 @@
 # Lagun-EX
+
+<img src="wavy1.png" width="1000" height="150">
+
 This repository contains the developed software (LWaves) of an individual research objective related to a measurement campaign which goes under the name: Lagun-EX. This fieldwork is part of the course Fieldwork Hydraulic Engineering at the Delft University of Technology and took place in week 39 of 2018. The site of the fieldwork campaign is located at the Sand Engine between Kijkduin and Ter Heijde along the ‘Westland’ coastal cell of the Dutch coast.
 
 Local  (mega)  nourishments  are  soft  solutions  regarding  the  deficit  in  the  sediment  budget  of  a certain  coastal  system  and  are  expected  to  be  more  efficient,  economical,  and  environmentally friendly in the long term than conventional beach and shoreface nourishments (Stive et al., 2013).The Sand Engine is an innovative and experimental example of such a coastal reinforcement which was constructed in 2011 in which 21.5 million cubic meters of sand is deposited between Kijkduin and Ter Heijde.  
@@ -11,4 +14,4 @@ A potential new and innovative way of obtaining measurements of wave hydrodynami
 
 So the research question for this research is as follows:
 
-Can 3D laser scanning techniques be applied to acquire wave characteristics for studying the inner-surf and swash hydrodynamics and in which accuracy range can these measurements be obtained compared to the measurements obtained via conventional instruments?
+**Can 3D laser scanning techniques be applied to acquire wave characteristics for studying the inner-surf and swash hydrodynamics and in which accuracy range can these measurements be obtained compared to the measurements obtained via conventional instruments?**
