@@ -32,9 +32,8 @@ count  = 0; % used for apply noise reduction only once
 4. Waterline threshold 
 5. 3D to 2D matrix: RTPAXYZt or only RZtA
 6. Structred RZtA 
-7. Wave time-stack 
-8. Wave Animation 
-8. Export time-series data
+7. Wave run-up time-stack 
+8. Wave run-up Animation 
 %}
 
 %% 0. Supply [INPUT] parameters:
@@ -217,7 +216,7 @@ t_struc = (t_struc-min(t_struc))*t_delta;
 Z_struc((Z_struc(:,:)==0)) = NaN;
 A_struc((A_struc(:,:)==0)) = NaN;
 
-%% 7.1 Wave Time-Stack:
+%% 7 Wave Time-Stack:
 t_min = 1; % [INPUT] start of time range in ray numbers
 t_max = size(t_struc,1); % [INPUT] end of time range in ray numbers
 
@@ -232,11 +231,11 @@ colors = {gray,blue,parula,flag,winter,cool,jet}; % store colormaps
 
 figure('units','normalized','outerposition',[0 0 1 1]);
 [X,Y] = meshgrid(R_struc, t_struc);
-colormap(colors{3});  %3,5,6,7
-%[C,g] = contourf(Y(t_min:t_max,:),X(t_min:t_max,:),A_struc(:,t_min:t_max)',10,'HandleVisibility','off'); hold on;
+colormap(colors{3}); 
+%[C,g] = contourf(Y(t_min:t_max,:),X(t_min:t_max,:),Z_struc(:,t_min:t_max)',10,'HandleVisibility','off'); hold on;
 [C,g] = contourf(Y(t_min:t_max,:),X(t_min:t_max,:),A_struc(:,t_min:t_max)',10); hold on;
-plot(RtA_w(:,2),RtA_w(:,1),'r','linewidth',5); hold on;
-plot(RtA_w2(:,2),RtA_w2(:,1),'g','linewidth',10); hold on;
+plot(RtA_w(:,2),RtA_w(:,1),'r','linewidth',10); hold on;
+plot(RtA_w2(:,2),RtA_w2(:,1),'g','linewidth',5); hold on;
 h = colorbar;
 set(g,'LineColor','none')
 set( h, 'YDir', 'reverse' );
