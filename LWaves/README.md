@@ -2,7 +2,7 @@
 
 LWaves/Scripts:
 
-1. car2sph: Converts Cartesian to Spherical Coordinates of 3D map (txt)
+1. car2sph: Converts Cartesian (txt) to Spherical Coordinates of 3D map 
 
 <p float="left">
 <img src="../img's/LW008_2D.png" width="265"/>
