@@ -57,9 +57,7 @@ LWaves/Scripts:
 3.2 RunupTimeStack: Transform 3D LiDAR map (RTPAXYZ_rays) to Run-up Time-stack based on reflectivity threshold
 
 <p float="left">
-<img src="../img's/LR022_2D.png" width="250"/>
-<img src="../img's/LR022_reduced.png" width="250"/>
-<img src="../img's/LR022_RZtA.png" width="250"/>
+<img src="../img's/LR022_RZtA.png" width="400"/>
 </p>
 
 LWaves/Functions:
