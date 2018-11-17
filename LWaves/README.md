@@ -1,6 +1,6 @@
 ----LWaves----
 
-LW/Scripts:
+LWaves/Scripts:
 
 1. car2sph: Converts Cartesian to Spherical Coordinates of 3D map
 
@@ -62,7 +62,7 @@ LW/Scripts:
 <img src="../img's/Ef_4.png" width="400"/>
 </p>
 
-LW/Functions:
+LWaves/Functions:
 
 1. zero_crossing: Zero crossing analysis of wave data
 
