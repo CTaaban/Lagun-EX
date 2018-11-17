@@ -1,4 +1,4 @@
-  %% Transform LiDAR 3D map to Wave Run-up Time-stack
+  %% Transform LiDAR 3D map to Wave Run-up Time-stack based on reflectivity threshold
 %
 % Author: Chahid Taaban
 % Created: 25-10-2018
@@ -6,7 +6,7 @@
 clear all; close all; clc;
 count  = 0; % used for apply noise reduction only once
 
-%% Notes for Khaled:
+%% Notes for Wave Run-up:
 
 % Wave runup / waterline algorthm:
 % 1. Determine representative width in longitunal direction of runup (uniform width)
@@ -29,23 +29,22 @@ count  = 0; % used for apply noise reduction only once
 1. Import dataset (RTPAXYZ_rays)
 2. Use arc settings to obtain time information 
 3. Noise reduction -> Manually or CloudCompare 
-4. 3D to 2D matrix: RTPAXYZt or only RZt
-5. Structred RZt 
-6. Wave time-stack 
-7. Wave Animation 
+4. Waterline threshold 
+5. 3D to 2D matrix: RTPAXYZt or only RZtA
+6. Structred RZtA 
+7. Wave time-stack 
+8. Wave Animation 
 8. Export time-series data
--------------------TODO-----------------------
-9. Wave Slider Plot [X]
 %}
 
 %% 0. Supply [INPUT] parameters:
-map_dataset = 'LW008'; % [INPUT] = name of 3D map dataset, LW020 densest so far and LW018 best
+map_dataset = 'LR022'; % [INPUT] = name of 3D map dataset, LW020 densest so far and LW018 best
 switch map_dataset % [INPUT] = name of GPS datasets (e.g. DAY_5_LW)
     case {'LW007', 'LW008'}
         GPS_dataset = 'LW_DAY_3'; 
     case {'LW010', 'LW011'}
         GPS_dataset = 'LW_DAY_4';
-    case {'LW017', 'LW018', 'LW020', 'LW021', 'LW022', 'LW023'}
+    case {'LW017', 'LW018', 'LW020', 'LW021', 'LW022','LR022', 'LW023'}
         GPS_dataset = 'LW_DAY_5';
 end
 
@@ -64,6 +63,7 @@ MetaData = {'LW007', '25-09-2018', '17:18', 3.1, 10, '01:32', 0.018;
             'LW021', '27-09-2018', '18:01', 1.6,  4, '02:27', 0.009;
             'LW022', '27-09-2018', '18:21', 3.1, 40, '06:01', 0.018;
             'LW023', '27-09-2018', '18:29', 3.1, 10, '01:32', 0.018;
+            'LR022', '27-09-2018', '18:21', 3.1, 40, '06:01', 0.018;
             }; % [INPUT]
 
 % Find row index for dataset of input
@@ -78,16 +78,14 @@ end
 
 %% 1. Import data
 struct = load(['../Data/mat/RTPAXYZ_rays/',GPS_dataset(4:8),'/',map_dataset,'.mat']);
-%struct = load(['../Data/mat/RTPAXYZ_rays/',GPS_dataset(4:8),'/',map_dataset,'_V2','.mat']);
 RTPAXYZ_rays = struct.RTPAXYZ_rays;
 clear struct;
-
 addpath('../Functions/');
+
 %% 2. Use arc settings to obtain time information
 rays = size(RTPAXYZ_rays,3);
 t_dur = str2double(MetaData{index,6}(1:2))*60+str2double(MetaData{index,6}(4:5)); % Total scan duration in [s]
 t_delta = t_dur*MetaData{index,7}/MetaData{index,5}; % time between two rays
-%t_delta = 0.1;
 
 %% 3. Noise reduction:
 %%{
@@ -101,6 +99,9 @@ switch GPS_dataset
         filter = 2.0;
 end
 
+filter_min = -2500;
+filter_max = -1600;
+
 if count == 0
     % Filtering criterion: 
     A = RTPAXYZ_rays(:,7,:) > nanmedian(nanmedian(RTPAXYZ_rays(:,7,:))) + 5*nanstd(nanstd(RTPAXYZ_rays(:,7,:)));
@@ -108,15 +109,45 @@ if count == 0
     B = [A, A, A, A, A, A, A]; % Apply filtering boolean for all columns
     RTPAXYZ_rays(B) = NaN; % Filter rows out 
     %RTPAXYZ_rays(:,7,:) = medfilt1(RTPAXYZ_rays(:,7,:),100,'omitnan');    
+    
+    A = RTPAXYZ_rays(:,4,:) < filter_min;
+    B = [A, A, A, A, A, A, A]; % Apply filtering boolean for all columns
+    RTPAXYZ_rays(B) = NaN; % Filter rows out 
+    
+    A = RTPAXYZ_rays(:,4,:) > filter_max;
+    B = [A, A, A, A, A, A, A]; % Apply filtering boolean for all columns
+    RTPAXYZ_rays(B) = NaN; % Filter rows out 
+    
     count = -999;
 end
 %}
 
-%% 4. 3D to 2D matrix: RTPAXYZt or only RZt 
-RZt = zeros(size(RTPAXYZ_rays,1)*rays,3); % to hold data for Time-stack: R, Z and t
+%% 4. Waterline Threshold:
+A_threshold = -1980; % [INPUT] threshold value for reflectivity of waterline
+
+RtA_w = zeros(size(RTPAXYZ_rays,3),2); 
+
+for i=1:size(RTPAXYZ_rays,3)
+    for j=1:size(RTPAXYZ_rays,1)
+        if RTPAXYZ_rays(j,4,i) < A_threshold
+            RtA_w(i,1) = RTPAXYZ_rays(j,1,i);
+            RtA_w(i,2) = i*t_delta;
+            RtA_w(i,3) = RTPAXYZ_rays(j,4,i);
+            break;
+        end
+    end
+end
+
+window = 30;
+RtA_w(RtA_w==0) = nan;
+RtA_w2 = movmean(RtA_w,window,'omitnan');
+
+%% 5. 3D to 2D matrix: RTPAXYZt or only RZtAA 
+RZtA = zeros(size(RTPAXYZ_rays,1)*rays,4); % to hold data for Time-stack: R, Z and t
 R = zeros(size(RTPAXYZ_rays,1)*rays,1);
 Z = zeros(size(RTPAXYZ_rays,1)*rays,1);
 t = zeros(size(RTPAXYZ_rays,1)*rays,1);
+A = zeros(size(RTPAXYZ_rays,1)*rays,1);
 
 count_j = 1; % used to keep track of the row number 
 
@@ -126,6 +157,7 @@ for i=1:rays
             R(count_j,1) = RTPAXYZ_rays(j,1,i);
             Z(count_j,1) = RTPAXYZ_rays(j,7,i);
             t(count_j,1) = i;
+            A(count_j,1) = RTPAXYZ_rays(j,4,i);
             count_j = count_j + 1;
         end
     end
@@ -133,50 +165,59 @@ end
 R(R == 0) = [];
 Z(Z == 0) = [];
 t(t == 0)= [];
-RZt = [R,Z,t]; % Combine all columns in 2D matrix
+A(A == 0)= [];
+RZtA = [R,Z,t,A]; % Combine all columns in 2D matrix
 
-%% 5. Structured RZt 
+%% 6. Structured RZtA 
 R_min = 20; 
-R_max = 60;
+R_max = 35;
 R_delta = 0.25;
 
 R_struc = R_min:R_delta:R_max; % Scattered R points will be interpolated on R_struc 
-t_struc = unique(RZt(:,3)); % Corresponding t values of points
+t_struc = unique(RZtA(:,3)); % Corresponding t values of points
 Z_struc = zeros(length(R_struc),length(t_struc));  % Corresponding Z values of points
+A_struc = zeros(length(R_struc),length(t_struc));  % Corresponding A values of points
 
 count_t = 1; % used to keep track of ray number (and hence time, t)
-count_rz = 1; % used to keep track of clustered points (RZ) of one ray
-RZ_temp = []; % will hold RZ values of one ray temporary 
+count_rza = 1; % used to keep track of clustered points (RZ) of one ray
+RZA_temp = []; % will hold RZ values of one ray temporary 
 
 
-for i=1:size(RZt,1) % loop trough all (3D) points
+for i=1:size(RZtA,1) % loop trough all (3D) points
     % cluster points of one ray:
-    if RZt(i,3)==t_struc(count_t) 
-        RZ_temp(count_rz,1) = RZt(i,1);
-        RZ_temp(count_rz,2) = RZt(i,2);
-        count_rz = count_rz + 1;
+    if RZtA(i,3)==t_struc(count_t) 
+        RZA_temp(count_rza,1) = RZtA(i,1);
+        RZA_temp(count_rza,2) = RZtA(i,2);
+        RZA_temp(count_rza,3) = RZtA(i,4); 
+        count_rza = count_rza + 1;
     % Increase ray number and interpolate and save previous Z values:
+     
+    
     else
-        if nnz(RZ_temp~=0) >= 4 % needed since at least two points are needed for interpolation
-           Z_struc(:,count_t) = (interp1(RZ_temp(:,1),RZ_temp(:,2),R_struc));
+        if nnz(RZA_temp~=0) >= 4 % needed since at least two points are needed for interpolation
+           Z_struc(:,count_t) = (interp1(RZA_temp(:,1),RZA_temp(:,2),R_struc));
+           A_struc(:,count_t) = (interp1(RZA_temp(:,1),RZA_temp(:,3),R_struc));
         else
            Z_struc(:,count_t) = ones(length(R_struc),1)*nan; % otherwise ray will contain just nan values
+           A_struc(:,count_t) = ones(length(R_struc),1)*nan; % otherwise ray will contain just nan values
         end
-        RZ_temp = []; % empty temprary RZ matrix for new ray
-        count_rz = 1; % reset row number of RZ matrix for new ray
+        RZA_temp = []; % empty temprary RZA matrix for new ray
+        count_rza = 1; % reset row number of RZA matrix for new ray
         count_t = count_t + 1; % increase ray number to next ray
-        if RZt(i,3)==t_struc(count_t) % cluster points of this 1st next ray:
-            RZ_temp(count_rz,1) = RZt(i,1);
-            RZ_temp(count_rz,2) = RZt(i,2);
-            count_rz = count_rz + 1;
+        if RZtA(i,3)==t_struc(count_t) % cluster points of this 1st next ray:
+            RZA_temp(count_rza,1) = RZtA(i,1);
+            RZA_temp(count_rza,2) = RZtA(i,2);
+            RZA_temp(count_rza,3) = RZtA(i,4);
+            count_rza = count_rza + 1;
         end
     end
 end
 t_0 = min(t_struc)*t_delta;
 t_struc = (t_struc-min(t_struc))*t_delta;
 Z_struc((Z_struc(:,:)==0)) = NaN;
+A_struc((A_struc(:,:)==0)) = NaN;
 
-%% 6.1 Wave Time-Stack:
+%% 7.1 Wave Time-Stack:
 t_min = 1; % [INPUT] start of time range in ray numbers
 t_max = size(t_struc,1); % [INPUT] end of time range in ray numbers
 
@@ -191,90 +232,32 @@ colors = {gray,blue,parula,flag,winter,cool,jet}; % store colormaps
 
 figure('units','normalized','outerposition',[0 0 1 1]);
 [X,Y] = meshgrid(R_struc, t_struc);
-colormap(colors{1});
-contourf(Y(t_min:t_max,:),X(t_min:t_max,:),Z_struc(:,t_min:t_max)',10); hold on;
-%contourf(Y(t_min:t_max,:),X(t_min:t_max,:),Z_struc2(:,t_min:t_max)',10); hold on;
+colormap(colors{3});  %3,5,6,7
+%[C,g] = contourf(Y(t_min:t_max,:),X(t_min:t_max,:),A_struc(:,t_min:t_max)',10,'HandleVisibility','off'); hold on;
+[C,g] = contourf(Y(t_min:t_max,:),X(t_min:t_max,:),A_struc(:,t_min:t_max)',10); hold on;
+plot(RtA_w(:,2),RtA_w(:,1),'r','linewidth',5); hold on;
+plot(RtA_w2(:,2),RtA_w2(:,1),'g','linewidth',10); hold on;
 h = colorbar;
+set(g,'LineColor','none')
 set( h, 'YDir', 'reverse' );
 shading flat;
+
 %set(h, 'ylim', [1 2]);
-title(['Wave time-stack (', map_dataset ,')']);
+
+title(['Wave Run-up time-stack (', map_dataset ,')']);
 ylabel('Radius [m]');
 xlabel('Time [s]');
-%xlim([0, 100]); ylim([20,60]);
-%xlim([0, 360]); ylim([40,50]);
-h.Label.String = 'Elevation [m]';
+%xlim([0, 360]); ylim([20,35]);
+h.Label.String = 'Reflectivity [-]';
+legend('Beach',['Unsmoothed waterline (Threshold = ',num2str(A_threshold),')'],['Smoothed waterline (t=',num2str(window),'s)'])
 set(gca,'fontsize',24);
 
 if saveOn
-    print(['../Data/Images/',GPS_dataset(4:8),'/',map_dataset,'_RZt.png'],'-dpng');
+    print(['../Data/Images/',GPS_dataset(4:8),'/',map_dataset,'_RZtA.png'],'-dpng');
     close all;
 end
 
-%% 6.2 Wave Snap-Shot:
-% stores snap-shots:
-snap = [786,42, 145, 205, 247, 372, 548, 623, 676, 925];  
-snap2 = [50, 80, 160, 210];
-snap3 = [50, 54, 58, 62, 64];
-
-step = 6; % [INPUT] time-step in rays for plot 
-a = round(11*3);
-b = a + 4*step;
-snap3 = a:step:b;
-
-clear leg;
-figure();
-
-z_min = min(min(Z_struc(:,160:186)))-0.1;
-z_max = max(max(Z_struc(:,160:186)))+0.3;
-
-for i=1:length(snap3)
-    plot(R_struc,Z_struc(:,snap3(i)),'-.','linewidth',3); hold on;
-    if i == 1
-        leg{i} = ['t_0 = ', num2str(round(t_struc(snap3(1)),1)) ,'s'];
-    else
-        leg{i} = ['t = t_0 + ', num2str(round((i-1)*t_delta*step,1)),'s'];
-    end
-end
-
-xlim([R_min,R_max]); ylim([z_min,z_max]);
-xlim([30,55]); ylim([0.2,1.6]);
-set(gca,'fontsize',14);
-title(['Wave development (', map_dataset,')']);
-xlabel('Radius [m]');
-grid;
-ylabel('Water level elevation [m]');
-legend(leg);
-
-if saveOn
-    print(['../Data/Images/',GPS_dataset(4:8),'/',map_dataset,'_RZ.png'],'-dpng');
-    close all;
-end
-
-%% 6.3 Wave Time-series:
-r = 45;
-r_index = find(R_struc==r); % [INPUT] index of radius of time-series
-z_min = min(Z_struc(r_index,:))-0.1;
-z_max = max(Z_struc(r_index,:))+0.1;
-
-%Z_struc = detrend(Z_struc);
-%A = detrend(Z_struc);
-
-figure();
-plot(t_struc,Z_struc(r_index,:),'linewidth',1.5);
-%ylim([z_min,z_max]);
-set(gca,'fontsize',14);
-grid;
-title(['Wave time-series at R = ', num2str(r),'m (', map_dataset,')']);
-ylabel('Water level elevation [m]');
-xlabel('Time [s]');
-
-if saveOn
-    print(['../Data/Images/',GPS_dataset(4:8),'/',map_dataset,'_Zt.png'],'-dpng');
-    close all;
-end
-
-%% 7. Wave Animation:
+%% 8. Wave Animation:
 if runAnimation
     filename = ['../Data/Images/',GPS_dataset(4:8),'/',map_dataset,'.gif'];
     
@@ -287,7 +270,7 @@ if runAnimation
     
     for i=t_start:t_end
         %g(i) = plot(RTPAXYZ_rays(:,1,i), RTPAXYZ_rays(:,7,i),'r-.','linewidth',1.5); hold on;
-        %h(i) = plot(RZt(RZt(:,3)==i,1), RZt(RZt(:,3)==i,2), 'b-.','linewidth',1.5);
+        %h(i) = plot(RZtA(RZtA(:,3)==i,1), RZtA(RZtA(:,3)==i,2), 'b-.','linewidth',1.5);
         h(i) = plot(R_struc, Z_struc(:,i), 'b-.','linewidth',1.5);
         xlim([R_min,R_max]);ylim([0.4,3]);
         xticks(linspace(R_min,R_max,5));
@@ -325,16 +308,5 @@ if runAnimation
     set(gca, 'fontsize', 14);
 end
 
-%% 8. Export time-series data:
-if saveOn
-    save(['../Data/mat/RZt/',GPS_dataset(4:8),'/',map_dataset],'R_struc','Z_struc','t_struc','t_0');
-end
 
-%% 9. Wave Slider Plot:
-%ray_num = 1;
-%bgcolor = f.Color;
-%b = uicontrol('Parent',f,'Style','slider','Position',[75,10,435,23],'value',ray_num, 'min',1, 'max',rays);
-%bl1 = uicontrol('Parent',f,'Style','text','Position',[50,12,23,23],'String','0','BackgroundColor',bgcolor);
-%bl2 = uicontrol('Parent',f,'Style','text','Position',[510,12,28,22],'String',num2str(rays),'BackgroundColor',bgcolor);
-%bl3 = uicontrol('Parent',f,'Style','text','Position',[245,35,100,20],'String','Ray number','BackgroundColor',bgcolor);
-%b.Callback = @(es,ed) updateSystem(h,ray_num);
+
