@@ -7,15 +7,17 @@ LW/Scripts:
 
 2. LiDARRays: Transform spherical map (RTPA) to sliced map with grouped points for each LiDAR ray
 
-3. WaveTimeStack: Transform 3D LiDAR map (RTPAXYZ_rays) to Wave Time-stack of water surface elevation 
- 
+3.1 WaveTimeStack: Transform 3D LiDAR map (RTPAXYZ_rays) to Wave Time-stack of water surface elevation 
+
+3.2 RunupTimeStack: Transform 3D LiDAR map (RTPAXYZ_rays) to Run-up Time-stack based on reflectivity threshold
+
 4. LiDARWaveSpectrum: Spectral wave analysis for LiDAR time-series (RZt)
 
-4. OSSI4 WaveSpectrum: Spectral wave analysis for OSSI (pressure sensor) time-series (RZt)
+5. OSSI4 WaveSpectrum: Spectral wave analysis for OSSI (pressure sensor) time-series (RZt)
 
-5. Validation: Validation of spectral wave characteristics of LiDAR w.r.t. OSSI's (Spectrum)
+6. Validation: Validation of spectral wave characteristics of LiDAR w.r.t. OSSI's (Spectrum)
 
-6. Precision: Sensitivity analysis of precision on spectral wave characteristics of LiDAR (Precision)
+7. Precision: Sensitivity analysis of precision on spectral wave characteristics of LiDAR (Precision)
 
 LW/Functions:
 
@@ -24,7 +26,6 @@ LW/Functions:
 2. rms_wave_height: Calculation of H_rms
 
 3. significant_wave_height: Compute the signficant wave height 
-
 
 4. wave_spectrum: Compute variance spectral density spectrum of the time-series and its 90% confidence intervals
 
