@@ -25,14 +25,6 @@ LWaves/Scripts:
 <img src="../img's/LW008_Zt.png" width="265"/>
 </p>
 
-3.2 RunupTimeStack: Transform 3D LiDAR map (RTPAXYZ_rays) to Run-up Time-stack based on reflectivity threshold
-
-<p float="left">
-<img src="../img's/LR022_2D.png" width="265"/>
-<img src="../img's/LR022_reduced.png" width="265"/>
-<img src="../img's/LR022_RZtA.png" width="265"/>
-</p>
-
 4. LiDARWaveSpectrum: Spectral wave analysis for LiDAR time-series (RZt)
 
 <p float="left">
@@ -60,6 +52,14 @@ LWaves/Scripts:
 
 <p float="left">
 <img src="../img's/Ef_4.png" width="400"/>
+</p>
+
+3.2 RunupTimeStack: Transform 3D LiDAR map (RTPAXYZ_rays) to Run-up Time-stack based on reflectivity threshold
+
+<p float="left">
+<img src="../img's/LR022_2D.png" width="265"/>
+<img src="../img's/LR022_reduced.png" width="265"/>
+<img src="../img's/LR022_RZtA.png" width="265"/>
 </p>
 
 LWaves/Functions:
