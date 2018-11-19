@@ -1,6 +1,6 @@
 # Lagun-EX
 
-<img src="wavy1.png" width="1000" height="150">
+<img src="Images/wavy1.png" width="1000" height="150">
 
 This repository contains the developed software (LWaves) of an individual research objective related to a measurement campaign which goes under the name: Lagun-EX. This fieldwork is part of the course Fieldwork Hydraulic Engineering at the Delft University of Technology and took place in week 39 of 2018. The site of the fieldwork campaign is located at the Sand Engine between Kijkduin and Ter Heijde along the ‘Westland’ coastal cell of the Dutch coast.
 
