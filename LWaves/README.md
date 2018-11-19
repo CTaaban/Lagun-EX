@@ -51,7 +51,7 @@ Scripts:
 7. Precision: Sensitivity analysis of precision on spectral wave characteristics of LiDAR (Precision)
 
 <p float="left">
-<img src="../Images/Ef_4.png" width="265"/>
+<img src="../Images/Ef_4.png" width="400"/>
 </p>
 
 3.2 RunupTimeStack: Transform 3D LiDAR map (RTPAXYZ_rays) to Run-up Time-stack based on reflectivity threshold
