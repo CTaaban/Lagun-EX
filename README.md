@@ -16,4 +16,4 @@ A potential new and innovative way of obtaining measurements of wave hydrodynami
 
 So the research question for this research is as follows:
 
-**Can 3D laser scanning techniques be applied to acquire wave characteristics for studying the inner-surf and swash hydrodynamics and in which accuracy range can these measurements be obtained compared to the measurements obtained via conventional instruments?**
+**Can 3D laser scanning techniques be applied to acquire wave characteristics for studying the inner-surf and swash hydrodynamics?**
